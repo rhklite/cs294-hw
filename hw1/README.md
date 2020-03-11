@@ -1,8 +1,30 @@
 # CS294-112 HW 1: Imitation Learning
 
-Modification:
+## Behaviour Cloning
 
-We implemented the forward pass of the expert policy network in numpy, and you can use any deep learning framework you like to write this assignment. 
+- `python behaviour_clone.py`, `python evaluate.py` to evaluate the trained model.
+- The following result used expert rollout = 20, lr = 1e-3, training epoch = 2000
+
+|             | E $\mu$  | B $\mu$ | E $\sigma$ | B $\sigma$ |
+| :---------: | :------: | :-----: | :--------: | :--------: |
+| Humanoid-v2 | 10686.17 | 7710.19 |   73.41    |  3586.43   |
+|   Ant-v2    | 4698.77  |  4629   |   105.20   |    400     |
+
+- `python behaviour_clone_lstm.py` to train, `python evaluate_lstm.py` to evaluate the trained model
+- The following result used expert rollout = 20, lr = 1e-3, with 1 lstm layer with hidden size of 64, lr = 1e-3, training epoch = 2000
+
+|             | E $\mu$  | B $\mu$ | E $\sigma$ | B $\sigma$ |
+| :---------: | :------: | :-----: | :--------: | :--------: |
+| Humanoid-v2 | 10686.17 | 9612.13 |   73.41    |  2499.10   |
+|   Ant-v2    | 4698.77  | 4733.76 |   105.20   |   121.91   |
+
+## DAgger
+
+- Not implemented just yet. Will be done at a later date.
+
+<!-- Modification:
+
+We implemented the forward pass of the expert policy network in numpy, and you can use any deep learning framework you like to write this assignment.
 
 ------
 
@@ -34,4 +56,4 @@ The name of the pickle file corresponds to the name of the gym environment.
 
 
 
-See the [HW1 PDF](./hw1_instructions.pdf) for further instructions.
+See the [HW1 PDF](./hw1_instructions.pdf) for further instructions. -->
