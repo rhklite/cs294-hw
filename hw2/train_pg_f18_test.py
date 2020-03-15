@@ -217,7 +217,10 @@ class Agent(object):
         else:
             ts_mean, ts_logstd = self.policy_net(ts_ob_no)
             # YOUR_CODE_HERE
-            ts_logstd_na = ts_logstd.expand_as(ts_mean)
+            ts_logstd_na = []
+            for _ in range(list(ts_mean.shape)[0]):
+                ts_logstd_na.append(ts_logstd)
+            ts_logstd_na = torch.stack(ts_logstd_na)
             # db.printInfo(ts_mean)
             # db.printInfo(ts_logstd)
             # db.printInfo(ts_logstd_na)
@@ -259,19 +262,16 @@ class Agent(object):
                 logits=ts_logits_na).log_prob(ts_ac_na)
         else:
             ts_mean, ts_logstd = policy_parameters
-            # YOUR_CODE_HERE
-            # TODO Figure out why .sum(-1) is correct
-            ts_logprob_n = torch.distributions.Normal(
-                ts_mean, ts_logstd.exp()).log_prob(ts_ac_na).sum(-1)
-
-
-            # db.printInfo(ts_logprob_n)
-
-            # db.printInfo(ts_logprob_n.sum(-1))
-            # db.printInfo(ts_logprob_n.exp())
-            # db.printInfo(ts_logprob_n.exp().sum(-1))
-            # db.printInfo(ts_logprob_n.sum(-1).exp())
+            db.printTensor(ts_mean)
+            db.printTensor(ts_logstd)
+            db.printTensor(ts_ac_na)
             # input()
+            # YOUR_CODE_HERE
+            ts_logprob_n = torch.distributions.Normal(
+                ts_mean, ts_logstd.exp()).log_prob(ts_ac_na)
+            db.printInfo(ts_logprob_n)
+            db.printInfo(ts_logprob_n.sum(-1))
+            input()
         return ts_logprob_n
 
     def sample_trajectories(self, itr, env):
@@ -505,7 +505,7 @@ class Agent(object):
         # Loss Function for Policy Gradient
         #========================================================================================#
         # db.printTensor(ts_logprob_n)
-        # db.printTensor(ts_adv_n)
+        # db.printTensor(ts_adv_n))
         loss = -(ts_logprob_n*ts_adv_n).mean()
         loss.backward()
         
@@ -680,13 +680,12 @@ def main():
     parser.add_argument('--n_experiments', '-e', type=int, default=1)
     parser.add_argument('--n_layers', '-l', type=int, default=2)
     parser.add_argument('--size', '-s', type=int, default=64)
-    parser.add_argument('--dir', '-d', type=str, default='test')
     args = parser.parse_args()
 
-    if not(os.path.exists(args.dir)):
-        os.makedirs(args.dir)
+    if not(os.path.exists('data')):
+        os.makedirs('data')
     logdir = args.exp_name + '_' + args.env_name + '_' + time.strftime("%d-%m-%Y_%H-%M-%S")
-    logdir = os.path.join(args.dir, logdir)
+    logdir = os.path.join('data', logdir)
     if not(os.path.exists(logdir)):
         os.makedirs(logdir)
 
