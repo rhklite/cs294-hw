@@ -57,8 +57,8 @@ def plot_data(data, prefix, value="AverageReturn"):
     plt.legend(loc='best').draggable()
     figure = plt.gcf() # get current figure
     figure.set_size_inches(18, 10)
+    plt.savefig(prefix+'.png',bbox='tight')
     # plt.show()
-    plt.savefig(prefix+'problem5.png',bbox='tight')
 
 
 def get_datasets(fpath, condition=None):
@@ -96,7 +96,7 @@ def main():
     parser.add_argument('logdir', nargs='*')
     parser.add_argument('--legend', nargs='*')
     parser.add_argument('--value', default='AverageReturn', nargs='*')
-    parser.add_argument('--prefix', default='')
+    parser.add_argument('--prefix', default='plot')
     args = parser.parse_args()
 
     print(args.logdir)

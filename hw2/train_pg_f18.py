@@ -16,10 +16,11 @@ import inspect
 from torch.multiprocessing import Process
 from torch import nn, optim
 
+import print_custom as db
+
 #============================================================================================#
 # Utilities
 #============================================================================================#
-import print_custom as db
 #========================================================================================#
 #                           ----------PROBLEM 2----------
 #========================================================================================#  
@@ -42,14 +43,11 @@ def build_mlp(input_size, output_size, n_layers, hidden_size,
         Hint: use nn.Linear
     """
     layers = []
-    if n_layers == 1: 
-        layers.append(nn.Linear(input_size, output_size))
-    else:
-        for _ in range(n_layers-1):
-            layers.append(nn.Linear(input_size,hidden_size))
-            layers.append(activation())
-            input_size = hidden_size
-        layers.append(nn.Linear(hidden_size,output_size))
+    for _ in range(n_layers):
+        layers.append(nn.Linear(input_size, hidden_size))
+        layers.append(activation())
+        input_size = hidden_size
+    layers.append(nn.Linear(hidden_size,output_size))
 
     return nn.Sequential(*layers).apply(weights_init)
 
@@ -98,7 +96,6 @@ class PolicyNet(nn.Module):
         # YOUR_CODE_HERE
         if not self.discrete:
             self.ts_logstd = nn.Parameter(torch.randn(self.ac_dim))
-            
     #========================================================================================#
     #                           ----------PROBLEM 2----------
     #========================================================================================#
@@ -185,7 +182,11 @@ class Agent(object):
             params += list(self.value_net.parameters())
 
         self.optimizer = optim.Adam(params, lr=self.learning_rate)
-        
+    
+    def normalize(self, tensor, target_mean=0, target_std=1):
+        """Shifts the input to have a target mean and target standard deviation.
+        """
+        return target_mean + (tensor - tensor.mean())*(target_std/(tensor.std() + 1e-7))
     #========================================================================================#
     #                           ----------PROBLEM 2----------
     #========================================================================================#
@@ -214,15 +215,10 @@ class Agent(object):
             ts_logits_na = self.policy_net(ts_ob_no)
             # YOUR_CODE_HERE
             ts_sampled_ac = torch.distributions.Categorical(logits=ts_logits_na).sample()
+
         else:
             ts_mean, ts_logstd = self.policy_net(ts_ob_no)
-            # YOUR_CODE_HERE
-            ts_logstd_na = ts_logstd.expand_as(ts_mean)
-            # db.printInfo(ts_mean)
-            # db.printInfo(ts_logstd)
-            # db.printInfo(ts_logstd_na)
-            
-            ts_sampled_ac = torch.normal(ts_mean, ts_logstd_na.exp())
+            ts_sampled_ac = torch.normal(mean=ts_mean, std=ts_logstd.exp())
 
 
         sampled_ac = ts_sampled_ac.numpy()
@@ -262,16 +258,7 @@ class Agent(object):
             # YOUR_CODE_HERE
             # TODO Figure out why .sum(-1) is correct
             ts_logprob_n = torch.distributions.Normal(
-                ts_mean, ts_logstd.exp()).log_prob(ts_ac_na).sum(-1)
-
-
-            # db.printInfo(ts_logprob_n)
-
-            # db.printInfo(ts_logprob_n.sum(-1))
-            # db.printInfo(ts_logprob_n.exp())
-            # db.printInfo(ts_logprob_n.exp().sum(-1))
-            # db.printInfo(ts_logprob_n.sum(-1).exp())
-            # input()
+                loc=ts_mean, scale=ts_logstd.exp()).log_prob(ts_ac_na).sum(-1)
         return ts_logprob_n
 
     def sample_trajectories(self, itr, env):
@@ -299,7 +286,7 @@ class Agent(object):
             #====================================================================================#
             #                           ----------PROBLEM 3----------
             #====================================================================================#
-            ac = self.sample_action(ob[None])
+            ac = self.sample_action(ob[None])  # YOUR CODE HERE
             ac = ac[0]
             acs.append(ac)
             ob, rew, done, _ = env.step(ac)
@@ -394,9 +381,11 @@ class Agent(object):
                 q_n.append(q_path[::-1])
         else:
             for traj in re_n:
-                q_path = 0
                 for t, reward in enumerate(traj):
-                    q_path += reward*self.gamma**t
+                    try:
+                        q_path += reward*self.gamma**t
+                    except:
+                        q_path = reward
                 # do this to have the same return for each time step
                 q_n.append([q_path for _ in range(len(traj))])
         q_n = np.concatenate(q_n)
@@ -431,9 +420,9 @@ class Agent(object):
             # Hint #bl1: rescale the output from the nn_baseline to match the statistics
             # (mean and std) of the current batch of Q-values. (Goes with Hint
             # #bl2 in Agent.update_parameters.
-            raise NotImplementedError
             # YOUR CODE HERE
-            b_n = None 
+            b_n = self.value_net(torch.from_numpy(ob_no)).view(-1).numpy()
+            b_n = self.normalize(b_n, target_mean=q_n.mean(), target_std=q_n.std())
             adv_n = q_n - b_n
         else:
             adv_n = q_n.copy()
@@ -467,7 +456,7 @@ class Agent(object):
         if self.normalize_advantages:
             # On the next line, implement a trick which is known empirically to reduce variance
             # in policy gradient methods: normalize adv_n to have mean zero and std=1.
-            adv_n = (adv_n - np.mean(adv_n))/(np.std(adv_n) + 1e-7)
+            adv_n = self.normalize(adv_n)
         return q_n, adv_n
 
     def update_parameters(self, ob_no, ac_na, q_n, adv_n):
@@ -504,8 +493,6 @@ class Agent(object):
         #                           ----------PROBLEM 3----------
         # Loss Function for Policy Gradient
         #========================================================================================#
-        # db.printTensor(ts_logprob_n)
-        # db.printTensor(ts_adv_n)
         loss = -(ts_logprob_n*ts_adv_n).mean()
         loss.backward()
         
@@ -525,12 +512,11 @@ class Agent(object):
             # Agent.compute_advantage.)
 
             # YOUR_CODE_HERE
-            raise NotImplementedError
-            baseline_prediction = None
-            ts_target_n = None
-            baseline_loss = None
-            baseline_loss.backward()
-
+            baseline_prediction = self.value_net(ts_ob_no).double().view(-1)
+            ts_target_n = self.normalize(ts_q_n)
+            loss = nn.MSELoss()
+            critic_loss = loss(baseline_prediction, ts_target_n)
+            critic_loss.backward()
         #====================================================================================#
         #                           ----------PROBLEM 3----------
         # Performing the Policy Update
