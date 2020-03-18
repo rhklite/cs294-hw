@@ -26,11 +26,11 @@ def main():
     parser = argparse.ArgumentParser(
         'Behaviour cloning using pre-trained expert rollouts.')
     parser.add_argument('--save_file', type=str,
-                        default='./BC_Humanoid_lstm-v2.pth')
+                        default='./BC_result/BC_Humanoid_lstm-v2.pth')
     parser.add_argument('--envname', type=str, default='Humanoid-v2')
     parser.add_argument('--iter', type=int, default=20)
     parser.add_argument('--max_timesteps', type=int, default=1000)
-    parser.add_argument('--render', type=bool, default=True)
+    parser.add_argument('--render', type=bool, default=False)
     
     args = parser.parse_args()
 

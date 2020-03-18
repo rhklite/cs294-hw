@@ -36,7 +36,7 @@ class Model(nn.Module):
         x = torch.tanh(self.fc1(inputs))
         x = torch.tanh(self.fc2(x))
         x = torch.tanh(self.fc3(x))
-        x, hidden = self.lstm(inputs.view(len(inputs), 1, -1), hidden)
+        x, hidden = self.lstm(x.view(len(inputs), 1, -1), hidden)
         x = self.fc4(x[:,-1,:])
 
         return x.view(len(inputs), 1, -1)
@@ -98,11 +98,11 @@ def main():
     parser = argparse.ArgumentParser(
         'Behaviour cloning using pre-trained expert rollouts.')
     parser.add_argument('--rollout_file', type=str,
-                        default='expert_data/Ant-v2.pkl')
-    parser.add_argument('--envname', type=str, default='Ant-v2')
+                        default='expert_data/Humanoid-v2.pkl')
+    parser.add_argument('--envname', type=str, default='Humanoid-v2')
     parser.add_argument('--max_timesteps', type=int, default=1000)
     parser.add_argument('--training_epochs', type=int, default=2000)
-    parser.add_argument('--save_model', type=str, default='./BC_Ant_lstm-v2.pth')
+    parser.add_argument('--save_model', type=str, default='./BC_result/BC_Humanoid_lstm-v2.pth')
     parser.add_argument('--render', type=bool, default=True)
 
     args = parser.parse_args()

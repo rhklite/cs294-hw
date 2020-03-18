@@ -123,6 +123,8 @@ def main():
     for epoch in range(args.training_epochs):
         data_generator = feed_forward_generator(train, target, batch_size=20)
         for train_sample, target_sample in data_generator: 
+            db.printTensor(train_sample)
+            input()
             out = model(train_sample)
             loss = criterion(out, target_sample)
             optimizer.zero_grad()
