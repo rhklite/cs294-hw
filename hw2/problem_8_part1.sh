@@ -7,3 +7,5 @@ do
         python train_pg_f18.py HalfCheetah-v2 -ep 150 --discount 0.9 -n 100 -e 3 -l 2 -s 32 -b $i -lr $j -rtg --nn_baseline --exp_name "hc_b${i}_r${j}" --dir problem_8
     done
 done
+
+notify-send "cs294" "Problem 8 Grid Search Complete"

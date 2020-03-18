@@ -4,12 +4,14 @@ Adapted for CS294-112 Fall 2017 by Abhishek Gupta and Joshua Achiam
 Adapted for CS294-112 Fall 2018 by Michael Chang and Soroush Nasiriany
 Adapted for pytorch version by Ning Dai
 """
+import os
+os.environ['OMP_NUM_THREADS'] = '1'
+
 import numpy as np
 import torch
 import gym
 import logz
 import scipy.signal
-import os
 import time
 import inspect
 
@@ -17,6 +19,7 @@ from torch.multiprocessing import Process
 from torch import nn, optim
 
 import print_custom as db
+
 
 #============================================================================================#
 # Utilities
@@ -381,11 +384,9 @@ class Agent(object):
                 q_n.append(q_path[::-1])
         else:
             for traj in re_n:
-                for t, reward in enumerate(traj):
-                    try:
-                        q_path += reward*self.gamma**t
-                    except:
-                        q_path = reward
+                q_path = 0
+                for t, reward in enumerate(traj[::-1]):
+                    q_path = q_path*self.gamma + reward
                 # do this to have the same return for each time step
                 q_n.append([q_path for _ in range(len(traj))])
         q_n = np.concatenate(q_n)

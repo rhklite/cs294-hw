@@ -171,12 +171,24 @@ def rtg(re_n, gamma, reward_to_go=True):
                     q_path.append(reward)
             q_n.append(q_path[::-1])
     else:
+        # for traj in re_n:
+        #     q_path = 0
+        #     for t, reward in enumerate(traj[::-1]):
+        #         q_path = q_path*gamma + reward
+        #         db.printInfo(q_path)
+        #         # db.printInfo(q_path)
+        #         # db.printInfo(t)
+        #         # db.printInfo(gamma**t)
+
+        #         # input()
+        #     # do this to have the same return for each time step
+        #     q_n.append([q_path for _ in range(len(traj))])
         for traj in re_n:
-            q_path = 0
             for t, reward in enumerate(traj):
-                q_path += reward*gamma**t
-                # db.printInfo(q_path, t, gamma**t)
-                # input()
+                try:
+                    q_path = q_path + reward*gamma**t
+                except:
+                    q_path = reward
             # do this to have the same return for each time step
             q_n.append([q_path for _ in range(len(traj))])
     db.printInfo(q_n)
@@ -184,7 +196,6 @@ def rtg(re_n, gamma, reward_to_go=True):
 
     db.printInfo(q_n)
     return q_n
-
 
 def normalize(tensor, target_mean=0, target_std=1):
     """Shifts the input to have a target mean and target standard deviation.
@@ -214,13 +225,18 @@ def mlp(input_size, output_size, n_layers, hidden_size,  activation=nn.Tanh):
 if __name__ == "__main__":
     # unittest.main()
 
-    # re_n = np.arange(1,21).reshape(2,10)
-    # # re_n = np.ones(10).reshape(1,10)
-    # q_n = rtg(re_n, 0.5)
-    # q_n_sol = rtg_solution(re_n,0.5)
+    re_n = np.arange(1,21).reshape(2,10)
+    re_n= np.ones(5).reshape(1,5)
+    re_n = np.arange(1,5).reshape(1,4)
+
+    db.printInfo(re_n)
+    # re_n = np.ones(10).reshape(1,10)
+    q_n = rtg(re_n, 0.5, False)
+    q_n_sol = rtg_solution(re_n,0.5, False)
+    # q_n_sol = rtq_v2(re_n,0.5, False)
 
     # db.printInfo('Equal {}'.format(False not in (q_n == q_n_sol)))
-    mlp_sol(5,3,2,64)
-    mlp(5,3,2,64)
+    # mlp_sol(5,3,2,64)
+    # mlp(5,3,2,64)
     # module = build_mlp(5,3,3,64)
     # print(module)

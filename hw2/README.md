@@ -1,30 +1,13 @@
 # CS294-112 HW 2: Policy Gradient
 
-Modification:
+- CS294 Homework 2 Results with Pytorch, using starter code from  [berkeleydeeprlcourse-homework-pytorch](https://github.com/KuNyaa/berkeleydeeprlcourse-homework-pytorch)
 
-In general, we followed the code structure of the original version and modified the neural network part to pytorch. 
+## Problem 4: CartPole-v0
 
-Because of the different between the static graphs framework and the dynamic graphs framework, we merged and added some code in `train_pg_f18.py`. We also adapted the instructions of this assignment for pytorch. (Thanks to CS294-112 for offering ![equation](http://latex.codecogs.com/gif.latex?\LaTeX) code for the instructions) And you can just follow the pytorch version instructions we wrote.
-
-------
-
-Dependencies:
-
- * Python **3.5**
- * Numpy version **1.14.5**
- * Pytorch version **0.4.0**
- * MuJoCo version **1.50** and mujoco-py **1.50.1.56**
- * OpenAI Gym version **0.10.5**
- * seaborn
- * Box2D==**2.3.2**
-
-Before doing anything, first replace `gym/envs/box2d/lunar_lander.py` with the provided `lunar_lander.py` file.
-
-The only file that you need to look at is `train_pg_f18.py`, which you will implement.
-
-See the [HW2 PDF](./hw2_instructions.pdf) for further instructions.
-
-## Problem 4
+```bash
+# running the grid search experiment
+./problem_4.sh
+```
 
 - Large batch
 ![problem 4 large batch](report/p4_lb.png)
@@ -41,19 +24,48 @@ See the [HW2 PDF](./hw2_instructions.pdf) for further instructions.
 3. Did batch size make an impact?
    1. <font color="red">Answer</font>: Larger batch size shows less variance in the trajectory performance.
 
-## Problem 5
+## Problem 5: Inverted Pendulum-v2
 
 - By running grid search on batch and learning rate parameters, it was found that batch of 500 with learning rate of 0.016 can reach average return of 1000. Though the result is unstable and has high variance.
 
 ```bash
 # running the grid search experiment
 ./problem_5.sh
-
-# plot all result of grid search
-
-./problem_5_plot.sh
 ```
 
-- Result of the batch=500 is as below:
+- Result of the param space search is shown below, group by batch size.
 
-![problem 5 batch500](report/problem_5_grid_search/500problem5.png)
+![problem 5](report/p5_10000.png)
+![problem 5](report/p5_30000.png)
+![problem 5](report/p5_50000.png)
+
+## Problem 7: LunlarLancerContinuous-v2
+
+```bash
+# running the grid search experiment
+./problem_7.sh
+```
+
+![problem 7](report/p7.png)
+
+## Problem 8: HalfCheetah-v2
+
+### Part 1: Grid Search
+
+```bash
+# running the grid search experiment
+./problem_8_part1.sh
+```
+
+![problem 8](report/p8_param_10000.png)
+![problem 8](report/p8_param_30000.png)
+![problem 8](report/p8_param_50000.png)
+
+### Part 2: Optimum Param
+
+```bash
+# running the grid search experiment
+./problem_8_part2.sh
+```
+
+![problem 8](report/p8_optim.png)
